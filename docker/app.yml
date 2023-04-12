@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  ## backend
+  backend:
+    image: swe-backend
+    container_name: swe-backend
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    environment:
+      - _JAVA_OPTIONS=-Xmx512m -Xms256m
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://database:3306/swe?allowPublicKeyRetrieval=true&useSSL=false
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      - database
+#    networks:
+#      - swe-network
+
+  ## DB
+  database:
+    image: mysql:8.0.16
+    container_name: swe-mysql
+    ports:
+      - "127.0.0.1:3306:3306"
+#    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=swe
+    command: mysqld --lower-case-table-names=1 --skip-ssl --character_set_server=utf8mb4
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./src/main/resources/schema/init.sql:/docker-entrypoint/initdb.d/init.sql
+#    networks:
+#      - swe-network
+
+  ## frontend
+  frontend:
+    image: swe-frontend
+    build:
+      context: ../../sweAngular
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8081:8081"
+    depends_on:
+      - backend
+#    networks:
+#      - network
+
+#networks:
+#  swe-network:
+#    driver: bridge
+
+volumes:
+  mysql_data:

@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql:8.0.27
+    container_name: swe-mysql
+    ports:
+      - "127.0.0.1:3306:3306"
+    restart: unless-stopped
+    environment:
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: swe
+      TZ: Asia/Singapore
+    command: --lower-case-table-names=1 --skip-ssl --character_set_server=utf8
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./src/main/resources/schema/init.sql:/docker-entrypoint/initdb.d/init.sql
+
+volumes:
+  mysql_data:
